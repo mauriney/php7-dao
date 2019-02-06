@@ -45,12 +45,7 @@ class Usuario {
 		));
 
 		if (count($results) > 0){//Contando pra ver se existe id
-			$row = $results[0];//Recebe em row os resultados da variável $results
-
-			$this->setIdusuario($row['idusuario']);//Setando os valores
-			$this->setDeslogin($row['deslogin']);
-			$this->setDessenha($row['dessenha']);
-			$this->setDtcadastro(new DateTime($row['dtcadastro']));
+			$this->setData($results[0]);
 		}
 	}
 
@@ -80,17 +75,67 @@ class Usuario {
 		));
 
 		if (count($results) > 0){//Contando pra ver se existe id
-			$row = $results[0];//Recebe em row os resultados da variável $results
+			$this->setData($results[0]);
 
-			$this->setIdusuario($row['idusuario']);//Setando os valores
-			$this->setDeslogin($row['deslogin']);
-			$this->setDessenha($row['dessenha']);
-			$this->setDtcadastro(new DateTime($row['dtcadastro']));
+			
 		}
 		else {
 			throw new Exception("Login e/ou senha inválido");
 			
 		}
+	}
+
+	public function setData($data){
+		$this->setIdusuario($data['idusuario']);//Setando os valores
+		$this->setDeslogin($data['deslogin']);
+		$this->setDessenha($data['dessenha']);
+		$this->setDtcadastro(new DateTime($data['dtcadastro']));
+	}
+
+
+	//Insert de um novo usuário
+	public function insert(){
+		$sql = new Sql();
+		$results = $sql->select("CALL sp_usuarios_insert(:LOGIN, :PASSWORD)", array(
+			':LOGIN'=>$this->getDeslogin(),
+			':PASSWORD'=>$this->getDessenha()
+		));
+		if (count($results) > 0){
+			$this->setData($results[0]);
+		}
+	}
+
+
+	//Atualizando um cadastro
+	public function update($login, $password){
+		$this->setDeslogin($login);
+		$this->setDessenha($password);
+
+		$sql = new Sql();
+		$sql->query("UPDATE tb_usuarios SET deslogin = :LOGIN, dessenha = :PASSWORD WHERE idusuario = :ID", array(
+			':LOGIN'=>$this->getDeslogin(),
+			':PASSWORD'=>$this->getDessenha(),
+			':ID'=>$this->getIdusuario()
+		));
+	}
+
+	//Deletando um registro
+	public function delete(){
+		$sql = new Sql();
+		$sql->query("DELETE tb_usuarios WHERE idusuario = :ID", array(
+			':ID'=>$this->getIdusuario()
+		));
+
+		$this->setIdusuario(0);
+		$this->setDeslogin("");
+		$this->setDessenha("");
+		$this->setDtcadastro(new DateTime());
+	}
+
+	// Método construtor para setar valores no login e senha para novso usuarios
+	public function __construct($login = "", $password = ""){
+		$this->setDeslogin($login);
+		$this->setDessenha($password);
 	}
 
 
